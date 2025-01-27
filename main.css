@@ -1,0 +1,45 @@
+body {
+    background: linear-gradient(135deg, #2f1f00, #1a1200);
+}
+
+h1 {
+    font-family: 'Oxanium', sans-serif;
+    font-weight: 300;
+}
+
+.display-2 {
+    font-weight: 300;
+}
+
+
+.profile-image {
+    width: 50%;
+}
+
+.info-boxes h1,
+.info-boxes h2,
+.info-boxes h3 {
+    color: #a96f00;
+}
+
+.info-boxes a {
+    text-decoration: none;
+    color: white;
+}
+
+a.box:hover {
+    position: relative;
+    transform: scale3d(0.95, 0.95, 0.95);
+}
+
+footer i {
+    font-size: 2rem;
+}
+
+footer a {
+    color: white;
+}
+
+h2.small {
+    font-size: 130%;
+}
