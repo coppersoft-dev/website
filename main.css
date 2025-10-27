@@ -451,6 +451,19 @@ footer a:hover i {
         padding: 4rem 1rem;
     }
 
+    .hero-wrapper {
+        background-attachment: scroll;
+        background-position: center 40%;
+        background-size: cover;
+    }
+
+    .hero-wrapper::before {
+        background: linear-gradient(165deg,
+            rgba(26, 19, 16, 0.82) 0%,
+            rgba(10, 6, 4, 0.88) 50%,
+            rgba(26, 15, 10, 0.85) 100%);
+    }
+
     .info-boxes .box {
         margin-bottom: 1.5rem;
     }
