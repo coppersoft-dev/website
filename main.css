@@ -65,6 +65,34 @@ h2 {
 .hero {
     padding: 6rem 1rem;
     max-width: 900px;
+    position: relative;
+}
+
+.hero-wrapper {
+    position: relative;
+    background-image: url('images/matthew-henry-yETqkLnhsUI-unsplash.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+}
+
+.hero-wrapper::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(165deg,
+        rgba(26, 19, 16, 0.75) 0%,
+        rgba(10, 6, 4, 0.82) 50%,
+        rgba(26, 15, 10, 0.78) 100%);
+    z-index: 1;
+}
+
+.hero-wrapper > * {
+    position: relative;
+    z-index: 2;
 }
 
 .hero h2 {
@@ -129,6 +157,21 @@ h2 {
     overflow: hidden;
     height: 100%;
     display: block;
+}
+
+.service-icon {
+    font-size: 3rem;
+    color: var(--copper-primary);
+    margin-bottom: 1.5rem;
+    display: block;
+    opacity: 0.9;
+    transition: all 0.4s ease;
+}
+
+.info-boxes .box:hover .service-icon {
+    color: var(--copper-light);
+    transform: scale(1.1);
+    opacity: 1;
 }
 
 .info-boxes .box::before {
@@ -221,10 +264,31 @@ a.box:hover {
 }
 
 /* Why Choose Us Section */
+.why-choose-wrapper {
+    position: relative;
+    overflow: hidden;
+}
+
+.why-choose-wrapper::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-image: url('images/joshua-earle--87JyMb9ZfU-unsplash.jpg');
+    background-size: cover;
+    background-position: center;
+    opacity: 0.12;
+    z-index: 0;
+}
+
 .why-choose {
     max-width: 900px;
     margin: 0 auto;
     padding: 4rem 1rem;
+    position: relative;
+    z-index: 1;
 }
 
 .why-choose h2 {
@@ -356,6 +420,30 @@ footer a:hover i {
 
 .legal-content strong {
     color: var(--text-primary);
+}
+
+.legal-content h2 {
+    color: var(--copper-primary);
+    font-size: 1.8rem;
+}
+
+.legal-content ul {
+    list-style: none;
+    padding-left: 0;
+}
+
+.legal-content ul li {
+    padding-left: 1.5rem;
+    position: relative;
+    margin-bottom: 0.5rem;
+}
+
+.legal-content ul li::before {
+    content: '•';
+    color: var(--copper-primary);
+    font-weight: bold;
+    position: absolute;
+    left: 0;
 }
 
 /* Responsive */
