@@ -170,7 +170,6 @@ h2 {
 
 .info-boxes .box:hover .service-icon {
     color: var(--copper-light);
-    transform: scale(1.1);
     opacity: 1;
 }
 
