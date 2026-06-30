@@ -18,7 +18,7 @@
       <button type="button" data-lang="en">EN</button>
       <button type="button" data-lang="de">DE</button>
     </div>
-    <a href="/#contact" class="btn" data-de="Lass uns reden" data-en="Let's talk">Lass uns reden</a>
+    <a href="/#contact" class="btn letstalk" data-de="Lass uns reden" data-en="Let's talk">Lass uns reden</a>
   </div>
 </nav></div>`;
 
