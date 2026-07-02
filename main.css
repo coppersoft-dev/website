@@ -108,7 +108,7 @@ body.legal-page h2 { font-size: 20px; letter-spacing: normal; margin-bottom: 12p
   position:absolute;
   inset:0;
   z-index:0;
-  background:url('images/team-bg.png') center/cover no-repeat;
+  background:url('images/team-bg.jpg') center/cover no-repeat;
 }
 
 #team:after{
