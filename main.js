@@ -22,7 +22,7 @@
   </div>
 </nav></div>`;
 
-  var FOOTER = `<footer id="contact">
+  var FOOTER = `<footer>
   <div class="wrap">
     <div class="fcols">
       <div>
