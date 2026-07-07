@@ -8,17 +8,17 @@
     <span>coppersoft</span>
   </a>
   <div class="navlinks">
-    <a href="/#services" data-de="Leistungen" data-en="Services">Leistungen</a>
-    <a href="/#approach" data-de="Ansatz" data-en="Approach">Ansatz</a>
-    <a href="/#domain" data-de="Domäne" data-en="Domain">Domäne</a>
-    <a href="/#contact" data-de="Kontakt" data-en="Contact">Kontakt</a>
+    <a href="/#services" data-de="Leistungen" data-en="Services"></a>
+    <a href="/#approach" data-de="Ansatz" data-en="Approach"></a>
+    <a href="/#domain" data-de="Domäne" data-en="Domain"></a>
+    <a href="/#contact" data-de="Kontakt" data-en="Contact"></a>
   </div>
   <div class="navactions">
     <div class="langswitch" role="group" aria-label="Sprache / Language">
       <button type="button" data-lang="en">EN</button>
       <button type="button" data-lang="de">DE</button>
     </div>
-    <a href="/#contact" class="btn letstalk" data-de="Lass uns reden" data-en="Let's talk">Lass uns reden</a>
+    <a href="/#contact" class="btn letstalk" data-de="Lass uns reden" data-en="Let's talk"></a>
   </div>
 </nav></div>`;
 
@@ -34,18 +34,18 @@
         <p class="muted">Solid Software for Critical Infrastructure</p>
       </div>
       <div class="muted">
-        <p style="color:#cbd5dd;margin-bottom:8px;font-weight:600" data-de="Kontakt" data-en="Contact">Kontakt</p>
+        <p style="color:#cbd5dd;margin-bottom:8px;font-weight:600" data-de="Kontakt" data-en="Contact"></p>
         <p><a href="mailto:ping@coppersoft.com">ping@coppersoft.com</a></p>
         <p><a href="tel:+4922830406375">+49 228 3040 6375</a></p>
       </div>
       <div class="muted">
         <p style="color:#cbd5dd;margin-bottom:8px;font-weight:600">Coppersoft GmbH</p>
-        <p data-de="Am Kaiserkai 69<br>20457 Hamburg, Deutschland" data-en="Am Kaiserkai 69<br>20457 Hamburg, Germany">Am Kaiserkai 69<br>20457 Hamburg, Deutschland</p>
+        <p data-de="Am Kaiserkai 69<br>20457 Hamburg, Deutschland" data-en="Am Kaiserkai 69<br>20457 Hamburg, Germany"></p>
       </div>
     </div>
     <div class="copy">
       <span>© 2026 Coppersoft GmbH</span>
-      <span><a href="https://www.linkedin.com/company/coppersoft-dev" style="color:inherit">LinkedIn</a> · <a href="https://github.com/coppersoft-dev/" style="color:inherit">GitHub</a> · <a href="legalnotice.html" style="color:inherit" data-de="Impressum" data-en="Legal Notice">Impressum</a> · <a href="privacy.html" style="color:inherit" data-de="Datenschutz" data-en="Privacy">Datenschutz</a></span>
+      <span><a href="https://www.linkedin.com/company/coppersoft-dev" style="color:inherit">LinkedIn</a> · <a href="https://github.com/coppersoft-dev/" style="color:inherit">GitHub</a> · <a href="legalnotice.html" style="color:inherit" data-de="Impressum" data-en="Legal Notice"></a> · <a href="privacy.html" style="color:inherit" data-de="Datenschutz" data-en="Privacy"></a></span>
     </div>
   </div>
 </footer>`;
