@@ -75,4 +75,41 @@
   document.querySelectorAll('.langswitch button').forEach(function(b) {
     b.addEventListener('click', function() { apply(b.getAttribute('data-lang')); });
   });
+
+  // Smooth scroll for nav anchor links (handles /#hash hrefs).
+  // Uses a custom rAF animation so it works even when the OS
+  // "Reduce Motion" preference is on (which disables the browser's
+  // native scroll-behavior:smooth and scrollIntoView smooth).
+  function smoothScrollTo(targetY, duration) {
+    var startY = window.scrollY;
+    var diff = targetY - startY;
+    if (diff === 0) return;
+    var startTime = null;
+    function easeInOut(t) {
+      return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+    }
+    function step(now) {
+      if (!startTime) startTime = now;
+      var elapsed = now - startTime;
+      var progress = Math.min(elapsed / duration, 1);
+      window.scrollTo(0, startY + diff * easeInOut(progress));
+      if (progress < 1) requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  document.querySelectorAll('a[href]').forEach(function(a) {
+    a.addEventListener('click', function(e) {
+      var href = a.getAttribute('href');
+      var match = href.match(/^\/?#(.+)$/);
+      if (!match) return;
+      var target = document.getElementById(match[1]);
+      if (!target) return;
+      e.preventDefault();
+      var navHeight = (document.querySelector('.nav-outer') || {offsetHeight: 0}).offsetHeight;
+      var targetY = target.getBoundingClientRect().top + window.scrollY - navHeight;
+      smoothScrollTo(targetY, 700);
+      history.pushState(null, '', '#' + match[1]);
+    });
+  });
 })();
