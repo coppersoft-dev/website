@@ -98,12 +98,12 @@ body.legal-page h2 { font-size: 20px; letter-spacing: normal; margin-bottom: 12p
 .card h3 { font-family: var(--display); font-size: 21px; font-weight: 600; color: #fff; margin-bottom: 10px }
 .card p { font-size: 15px; color: #9fb0bd }
 
-#team {
+#contact {
     position:relative;
     overflow:hidden;
 }
 
-#team:before {
+#contact:before {
   content:"";
   position:absolute;
   inset:0;
@@ -111,7 +111,7 @@ body.legal-page h2 { font-size: 20px; letter-spacing: normal; margin-bottom: 12p
   background:url('images/team-bg.jpg') center/cover no-repeat;
 }
 
-#team:after{
+#contact:after{
   content:"";
   position:absolute;
   inset:0;
@@ -119,7 +119,7 @@ body.legal-page h2 { font-size: 20px; letter-spacing: normal; margin-bottom: 12p
   background:linear-gradient(100deg,rgba(14,20,25,.86) 20%,rgba(14,20,25,.55) 55%,rgba(14,20,25,.35) 80%,rgba(184,115,51,.30) 100%);
 }
 
-#team .wrap{
+#contact .wrap{
   position:relative;
   z-index:2;
 }
