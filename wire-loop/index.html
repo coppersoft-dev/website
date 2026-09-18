@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#0E1419">
+  <title>Stay on the Line — Coppersoft</title>
+  <meta name="description" content="A steady-hand wire loop challenge from Coppersoft.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../main.css">
+  <link rel="stylesheet" href="wire-loop.css">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+  <link rel="manifest" href="/images/site.webmanifest">
+</head>
+<body class="game-page">
+  <main class="game-main">
+    <section class="game-hero" aria-labelledby="game-title">
+      <div class="game-glow game-glow-left" aria-hidden="true"></div>
+      <div class="game-glow game-glow-right" aria-hidden="true"></div>
+
+      <div class="wrap game-wrap">
+        <div class="game-intro">
+          <div class="eyebrow" data-de="Eine kleine Herausforderung" data-en="A small challenge"></div>
+          <h1 id="game-title" data-de="Bleib auf <span class=&quot;c&quot;>Leitung.</span>" data-en="Stay on <span class=&quot;c&quot;>the line.</span>"></h1>
+          <p class="game-sub" data-de="Ruhige Hand. Klarer Kopf. Zuverlässig ans Ziel." data-en="Steady hands. Clear minds. Reliable outcomes."></p>
+          <p class="game-copy" data-de="Führe den Kontakt vom Start bis zum Ziel. Bleib auf der Kupferleitung – jede Berührung zählt." data-en="Guide the contact from start to finish. Stay on the copper line — every touch counts."></p>
+        </div>
+
+        <div class="game-panel" id="game-panel">
+          <div class="game-toolbar" aria-live="polite">
+            <div class="game-state">
+              <span class="state-dot" aria-hidden="true"></span>
+              <span id="state-label" data-de="Bereit" data-en="Ready"></span>
+            </div>
+            <div class="game-metrics">
+              <span><span data-de="Zeit" data-en="Time"></span> <strong id="game-time">00.0 seconds</strong></span>
+              <span><span data-de="Bestzeit" data-en="Best"></span> <strong id="game-best">— seconds</strong></span>
+            </div>
+          </div>
+
+          <div class="game-viewport">
+            <div class="track-stage" id="track-stage" aria-describedby="game-hint">
+              <svg class="track" id="wire-game" viewBox="0 0 1000 350" role="img" aria-labelledby="track-title track-desc">
+              <title id="track-title">Copper wire loop game</title>
+              <desc id="track-desc">Move from the start node on the left along the copper wire to the finish node on the right without leaving the line.</desc>
+              <defs>
+                <linearGradient id="copper-gradient" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0" stop-color="#8f4f25"/>
+                  <stop offset=".32" stop-color="#f1ac72"/>
+                  <stop offset=".6" stop-color="#b87333"/>
+                  <stop offset="1" stop-color="#e49a5e"/>
+                </linearGradient>
+                <filter id="wire-glow" x="-20%" y="-40%" width="140%" height="180%">
+                  <feGaussianBlur stdDeviation="5" result="blur"/>
+                  <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                </filter>
+              </defs>
+
+              <path class="wire-shadow" d="M74 190 H174 C205 190 219 207 219 234 V263 C219 291 235 305 262 305 H303 C332 305 346 289 346 261 V170 C346 131 369 111 407 111 H439 C474 111 490 130 490 163 V278 C490 311 508 329 534 329 C559 329 575 311 575 280 V241 C575 213 592 196 616 196 C638 196 648 210 660 232 C671 251 683 260 708 260 H733 C758 260 770 245 770 219 V100 C770 63 793 43 830 43 H858 C897 43 915 65 915 102 V202 C915 231 931 247 959 247 H984"/>
+              <path class="wire" id="wire-path" d="M74 190 H174 C205 190 219 207 219 234 V263 C219 291 235 305 262 305 H303 C332 305 346 289 346 261 V170 C346 131 369 111 407 111 H439 C474 111 490 130 490 163 V278 C490 311 508 329 534 329 C559 329 575 311 575 280 V241 C575 213 592 196 616 196 C638 196 648 210 660 232 C671 251 683 260 708 260 H733 C758 260 770 245 770 219 V100 C770 63 793 43 830 43 H858 C897 43 915 65 915 102 V202 C915 231 931 247 959 247 H984"/>
+
+              <g class="node start-node" transform="translate(74 190)">
+                <circle class="node-halo" r="28"/>
+                <circle class="node-ring" r="14"/>
+                <circle class="node-core" r="5"/>
+              </g>
+              <g class="node finish-node" transform="translate(984 247)">
+                <circle class="node-halo" r="30"/>
+                <circle class="node-ring" r="16"/>
+                <path class="finish-mark" d="M-7 0 -2 5 8 -7"/>
+              </g>
+
+              <text class="track-label" x="48" y="237" data-svg-de="START" data-svg-en="START">START</text>
+              <text class="track-label track-label-end" x="986" y="294" text-anchor="end" data-svg-de="ZIEL" data-svg-en="FINISH">FINISH</text>
+
+              <g class="wand" id="wand" transform="translate(74 190)" aria-hidden="true">
+                <circle class="wand-outer" r="20"/>
+                <circle class="wand-inner" r="10"/>
+                <path class="wand-handle" d="M14 14 L42 42"/>
+                <circle class="wand-grip" cx="48" cy="48" r="8"/>
+              </g>
+              </svg>
+            </div>
+
+            <div class="game-overlay" id="game-overlay">
+              <div class="overlay-card">
+                <div class="overlay-icon" id="overlay-icon" aria-hidden="true">↗</div>
+                <h2 id="overlay-title" data-de="Bereit für die Strecke?" data-en="Ready for the route?"></h2>
+                <p class="result-score" id="result-score" hidden></p>
+                <p id="overlay-copy" data-de="Drücke Start und bewege dann den Ring entlang der Leitung. Maus oder Finger – Hauptsache ruhig." data-en="Press start, then move the ring along the line. Mouse or finger — steady does it."></p>
+                <button class="game-button" id="start-game" type="button">
+                  <span data-de="Spiel starten" data-en="Start game"></span>
+                  <span aria-hidden="true">→</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <p class="game-hint" id="game-hint" data-de="Beginne am linken Kontaktpunkt und halte gedrückt." data-en="Begin at the left contact point and keep pressing."></p>
+        </div>
+      </div>
+    </section>
+
+    <section class="game-values" aria-label="Coppersoft principles">
+      <div class="wrap values-grid">
+        <article>
+          <span class="value-icon" aria-hidden="true">⌁</span>
+          <div><strong data-de="Präzise bauen." data-en="Build precisely."></strong><p data-de="Klare Wege, saubere Übergaben." data-en="Clear paths, clean handovers."></p></div>
+        </article>
+        <article>
+          <span class="value-icon status-icon" aria-hidden="true">●</span>
+          <div><strong data-de="Stabil betreiben." data-en="Run reliably."></strong><p data-de="Auch wenn es anspruchsvoll wird." data-en="Even when the route gets hard."></p></div>
+        </article>
+        <article>
+          <span class="value-icon" aria-hidden="true">◎</span>
+          <div><strong data-de="Verantwortung tragen." data-en="Own the outcome."></strong><p data-de="Vom Start bis zum Ziel." data-en="From start to finish."></p></div>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <div class="celebration" id="celebration" aria-hidden="true"></div>
+
+  <script src="../main.js"></script>
+  <script src="wire-loop.js"></script>
+</body>
+</html>
