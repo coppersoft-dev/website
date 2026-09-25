@@ -147,6 +147,23 @@ jobs:
           fetch-depth: 0
           token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Delete PR image from GHCR
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          ids=$(gh api "orgs/${{ github.repository_owner }}/packages/container/${{ github.event.repository.name }}/versions" \
+            --paginate \
+            --jq ".[] | select(.metadata.container.tags[]? | startswith(\"pr-${PR_NUMBER}-\")) | .id")
+          if [ -z "$ids" ]; then
+            echo "No image versions found for PR #${PR_NUMBER}"
+          fi
+          for id in $ids; do
+            echo "Deleting ghcr.io/${{ github.repository }} version $id"
+            gh api --method DELETE "orgs/${{ github.repository_owner }}/packages/container/${{ github.event.repository.name }}/versions/$id"
+          done
+
       - name: Check out previews branch if it exists
         id: previews_branch
         run: |
