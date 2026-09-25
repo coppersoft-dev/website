@@ -8,7 +8,7 @@ metadata:
 spec:
   selector:
     app.kubernetes.io/name: website-preview
-    app.kubernetes.io/name: pr-10
+    app.kubernetes.io/instance: pr-10
   ports:
     - port: 80
       protocol: TCP
