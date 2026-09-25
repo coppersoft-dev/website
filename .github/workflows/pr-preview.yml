@@ -1,0 +1,218 @@
+name: PR preview
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+
+permissions:
+  contents: write
+  packages: write
+  pull-requests: write
+
+concurrency:
+  group: pr-preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: false
+
+env:
+  PREVIEW_DOMAIN: ${{ vars.PREVIEW_DOMAIN || 'website-preview.coppersoft.dev' }}
+  INGRESS_CLASS: ${{ vars.PREVIEW_INGRESS_CLASS || 'nginx' }}
+
+jobs:
+  deploy:
+    if: github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR
+        uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push preview image
+        id: image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: ghcr.io/${{ github.repository }}:pr-${{ github.event.pull_request.number }}-${{ github.sha }}
+
+      - name: Checkout repo for previews branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          path: gitops
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check out (or create) previews branch
+        working-directory: gitops
+        run: |
+          set -euo pipefail
+          if git show-ref --verify --quiet refs/remotes/origin/previews; then
+            git checkout -B previews origin/previews
+          else
+            git checkout --orphan previews
+            git rm -rf . > /dev/null
+          fi
+
+      - name: Render preview manifest
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          IMAGE: ghcr.io/${{ github.repository }}:pr-${{ github.event.pull_request.number }}-${{ github.sha }}
+        run: |
+          set -euo pipefail
+          mkdir -p "gitops/deploy/previews/pr-${PR_NUMBER}"
+          for template in deploy/previews/templates/*.yaml; do
+            envsubst < "$template" > "gitops/deploy/previews/pr-${PR_NUMBER}/$(basename "$template")"
+          done
+
+      - name: Sync static namespace manifest
+        run: cp deploy/previews/namespace.yaml gitops/deploy/previews/namespace.yaml
+
+      - name: Regenerate previews index
+        run: |
+          set -euo pipefail
+          cd gitops/deploy/previews
+          shopt -s nullglob
+          {
+            echo "apiVersion: kustomize.config.k8s.io/v1beta1"
+            echo "kind: Kustomization"
+            echo "resources:"
+            echo "  - namespace.yaml"
+            for dir in pr-*/; do
+              echo "  - ${dir%/}"
+            done
+          } > kustomization.yaml
+
+      - name: Commit and push preview manifest
+        working-directory: gitops
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add "deploy/previews/pr-${PR_NUMBER}" deploy/previews/namespace.yaml deploy/previews/kustomization.yaml
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Deploy PR #${PR_NUMBER} preview (${GITHUB_SHA})"
+            git push
+          fi
+
+      - name: Comment preview URL on PR
+        uses: actions/github-script@v7
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          PREVIEW_URL: https://pr-${{ github.event.pull_request.number }}.${{ env.PREVIEW_DOMAIN }}
+        with:
+          script: |
+            const marker = '<!-- pr-preview-comment -->';
+            const body = `${marker}\n🚀 Preview deployed: ${process.env.PREVIEW_URL}\n\nFlux will roll this out shortly after this comment appears.`;
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const existing = comments.find(c => c.body.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
+
+  cleanup:
+    if: github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Check out previews branch if it exists
+        id: previews_branch
+        run: |
+          set -euo pipefail
+          if git show-ref --verify --quiet refs/remotes/origin/previews; then
+            git checkout -B previews origin/previews
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Remove preview manifest
+        if: steps.previews_branch.outputs.exists == 'true'
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          git rm -r --ignore-unmatch "deploy/previews/pr-${PR_NUMBER}"
+
+          cd deploy/previews
+          shopt -s nullglob
+          {
+            echo "apiVersion: kustomize.config.k8s.io/v1beta1"
+            echo "kind: Kustomization"
+            echo "resources:"
+            echo "  - namespace.yaml"
+            for dir in pr-*/; do
+              echo "  - ${dir%/}"
+            done
+          } > kustomization.yaml
+          cd ../..
+
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add deploy/previews/kustomization.yaml
+          if git diff --cached --quiet; then
+            echo "Nothing to remove"
+          else
+            git commit -m "Remove PR #${PR_NUMBER} preview"
+            git push
+          fi
+
+      - name: Comment on PR
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const marker = '<!-- pr-preview-comment -->';
+            const body = `${marker}\n🧹 Preview for this PR has been torn down.`;
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const existing = comments.find(c => c.body.includes(marker));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }

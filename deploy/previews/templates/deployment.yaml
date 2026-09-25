@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: website-pr-${PR_NUMBER}
+  labels:
+    app.kubernetes.io/name: website-preview
+    app.kubernetes.io/instance: pr-${PR_NUMBER}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: website-preview
+      app.kubernetes.io/instance: pr-${PR_NUMBER}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: website-preview
+        app.kubernetes.io/instance: pr-${PR_NUMBER}
+    spec:
+      containers:
+        - name: website
+          image: ${IMAGE}
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              protocol: TCP
+              containerPort: 8080
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            privileged: false
+            readOnlyRootFilesystem: true
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 50m
+              memory: 32Mi
+          volumeMounts:
+          - name: cache
+            mountPath: /var/cache/nginx
+          - name: tmp
+            mountPath: /tmp
+      volumes: 
+      - name: cache
+        emptyDir: {}
+      - name: tmp
+        emptyDir: {} 
+      securityContext:
+        runAsNonRoot: true
