@@ -10,8 +10,7 @@
   <div class="navlinks">
     <a href="/#services" data-de="Leistungen" data-en="Services"></a>
     <a href="/#approach" data-de="Ansatz" data-en="Approach"></a>
-    <a href="/#domain" data-de="Domäne" data-en="Domain"></a>
-    <a href="/#contact" data-de="Kontakt" data-en="Contact"></a>
+    <a href="/#domain" data-de="Domäne" data-en="Domain"></a>    <a href="/#contact" data-de="Kontakt" data-en="Contact"></a>
   </div>
   <div class="navactions">
     <div class="langswitch" role="group" aria-label="Sprache / Language">
