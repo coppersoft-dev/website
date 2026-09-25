@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: website-pr-11
+  labels:
+    app.kubernetes.io/name: website-preview
+    app.kubernetes.io/instance: pr-11
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-production
+spec:
+  ingressClassName: nginx-public
+  rules:
+  - host: pr-11.website-preview.coppersoft.dev
+    http:
+      paths:
+      - backend:
+          service:
+            name: website-pr-11
+            port:
+              name: http
+        path: /
+        pathType: Prefix
+  tls:
+    - hosts:
+      - pr-11.website-preview.coppersoft.dev
+      secretName: pr-11-website-preview.coppersoft.dev-tls
