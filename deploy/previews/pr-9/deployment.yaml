@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: website-pr-9
+  labels:
+    app.kubernetes.io/name: website-preview
+    app.kubernetes.io/instance: pr-9
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: website-preview
+      app.kubernetes.io/instance: pr-9
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: website-preview
+        app.kubernetes.io/instance: pr-9
+    spec:
+      containers:
+        - name: website
+          image: ghcr.io/coppersoft-dev/website:pr-9-b0789c1e4cd036396cce2303ba549e383e77307c
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              protocol: TCP
+              containerPort: 8080
+          securityContext:
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+            privileged: false
+            readOnlyRootFilesystem: true
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 50m
+              memory: 32Mi
+          volumeMounts:
+          - name: cache
+            mountPath: /var/cache/nginx
+          - name: tmp
+            mountPath: /tmp
+      volumes: 
+      - name: cache
+        emptyDir: {}
+      - name: tmp
+        emptyDir: {} 
+      securityContext:
+        runAsNonRoot: true

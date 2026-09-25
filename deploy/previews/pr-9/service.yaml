@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app.kubernetes.io/instance: pr-9
+    app.kubernetes.io/name: website-preview
+  name: website-pr-9
+spec:
+  selector:
+    app.kubernetes.io/name: website-preview
+    app.kubernetes.io/instance: pr-9
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: http
+      name: http
