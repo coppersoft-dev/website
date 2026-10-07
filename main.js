@@ -84,6 +84,9 @@
     var diff = targetY - startY;
     if (diff === 0) return;
     var startTime = null;
+    // Scroll snapping would fight the per-frame scrollTo calls, so pause it.
+    var root = document.documentElement;
+    root.style.scrollSnapType = 'none';
     function easeInOut(t) {
       return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
     }
@@ -93,6 +96,7 @@
       var progress = Math.min(elapsed / duration, 1);
       window.scrollTo(0, startY + diff * easeInOut(progress));
       if (progress < 1) requestAnimationFrame(step);
+      else root.style.scrollSnapType = '';
     }
     requestAnimationFrame(step);
   }
