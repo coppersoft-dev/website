@@ -240,12 +240,10 @@ section.teaser { padding: 0 }
 .benefits b { font-family: var(--display); color: #fff }
 .footnote { margin-top: 12px; font-size: 14px; color: #6b7a86 }
 
-/* Full-page sections with scroll snapping (desktop only) */
+/* Full-page sections (desktop only): each block fills the viewport below the nav */
 @media (min-width: 981px) and (min-height: 640px) {
-  html.snap { scroll-snap-type: y mandatory; scroll-padding-top: 80px }
-  .snap .fullpage { min-height: calc(100vh - 80px); display: flex; align-items: center; scroll-snap-align: start; padding: 36px 0 }
-  .snap .fullpage > .wrap { width: 100% }
-  .snap footer { scroll-snap-align: end }
+  section.fullpage, header.fullpage { min-height: calc(100vh - 80px); display: flex; align-items: center; padding: 36px 0 }
+  .fullpage > .wrap { width: 100% }
 }
 /* Alternating timeline: odd items above the line, even items below.
    Each box extends into the neighbouring column, which is free on that side. */

@@ -8,16 +8,17 @@
     <span>coppersoft</span>
   </a>
   <div class="navlinks">
-    <a href="/#services" data-de="Leistungen" data-en="Services"></a>
-    <a href="/#approach" data-de="Ansatz" data-en="Approach"></a>
-    <a href="/#domain" data-de="Domäne" data-en="Domain"></a>    <a href="/#contact" data-de="Kontakt" data-en="Contact"></a>
+    <a href="index.html#services" data-de="Leistungen" data-en="Services"></a>
+    <a href="index.html#approach" data-de="Ansatz" data-en="Approach"></a>
+    <a href="index.html#domain" data-de="Domäne" data-en="Domain"></a>
+    <a href="index.html#contact" data-de="Kontakt" data-en="Contact"></a>
   </div>
   <div class="navactions">
     <div class="langswitch" role="group" aria-label="Sprache / Language">
       <button type="button" data-lang="en">EN</button>
       <button type="button" data-lang="de">DE</button>
     </div>
-    <a href="/#contact" class="btn letstalk" data-de="Lass uns reden" data-en="Let's talk"></a>
+    <a href="index.html#contact" class="btn letstalk" data-de="Lass uns reden" data-en="Let's talk"></a>
   </div>
 </nav></div>`;
 
@@ -75,7 +76,7 @@
     b.addEventListener('click', function() { apply(b.getAttribute('data-lang')); });
   });
 
-  // Smooth scroll for nav anchor links (handles /#hash hrefs).
+  // Smooth scroll for nav anchor links (handles #hash, /#hash and index.html#hash hrefs).
   // Uses a custom rAF animation so it works even when the OS
   // "Reduce Motion" preference is on (which disables the browser's
   // native scroll-behavior:smooth and scrollIntoView smooth).
@@ -84,9 +85,6 @@
     var diff = targetY - startY;
     if (diff === 0) return;
     var startTime = null;
-    // Scroll snapping would fight the per-frame scrollTo calls, so pause it.
-    var root = document.documentElement;
-    root.style.scrollSnapType = 'none';
     function easeInOut(t) {
       return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
     }
@@ -96,7 +94,6 @@
       var progress = Math.min(elapsed / duration, 1);
       window.scrollTo(0, startY + diff * easeInOut(progress));
       if (progress < 1) requestAnimationFrame(step);
-      else root.style.scrollSnapType = '';
     }
     requestAnimationFrame(step);
   }
@@ -104,7 +101,7 @@
   document.querySelectorAll('a[href]').forEach(function(a) {
     a.addEventListener('click', function(e) {
       var href = a.getAttribute('href');
-      var match = href.match(/^\/?#(.+)$/);
+      var match = href.match(/^(?:\/|index\.html)?#(.+)$/);
       if (!match) return;
       var target = document.getElementById(match[1]);
       if (!target) return;
