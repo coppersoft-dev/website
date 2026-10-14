@@ -236,9 +236,19 @@ section.teaser { padding: 0 }
 .alt-card .olbl { font-family: var(--mono); font-size: 12px; line-height: 20px; letter-spacing: 1px; text-transform: uppercase; color: #6b7a86; margin-bottom: 7px }
 .alt-card p { text-align: center; font-size: 15px; color: #9fb0bd; margin-top: auto; padding-top: 14px; border-top: 1px solid #1d2731 }
 .chip { font-size: 12.5px; line-height: 20px; color: #cbd5dd; border: 1px solid var(--steel); border-radius: 999px; padding: 3px 10px }
-.benefits { display: grid; grid-template-columns: repeat(3,1fr); gap: 18px; margin-top: 22px; font-size: 15px; color: #9fb0bd }
+.benefits { display: grid; grid-template-columns: repeat(3,1fr); gap: 18px; margin-top: 22px; font-size: 15px; color: #9fb0bd; text-align: center }
 .benefits b { font-family: var(--display); color: #fff }
-.footnote { margin-top: 12px; font-size: 14px; color: #6b7a86 }
+.footnote { margin-top: 12px; font-size: 14px; color: #6b7a86; text-align: center }
+
+/* Downloads: compact strip with one row per PDF */
+section.block.downloads { padding: 56px 0 }
+.dl-list { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 18px }
+.dl-item { display: flex; justify-content: space-between; align-items: center; gap: 24px; background: #121a22; border: 1px solid #1d2731; border-radius: 14px; padding: 24px 26px; transition: .25s }
+.dl-item:hover { border-color: var(--copper) }
+.dl-item .k { font-family: var(--mono); font-size: 12px; color: var(--copper-bright); margin-bottom: 8px }
+.dl-item h3 { font-family: var(--display); font-size: 19px; font-weight: 600; color: #fff; margin-bottom: 4px }
+.dl-item p { font-size: 14px; color: #9fb0bd }
+.dl-item .btn-ghost { white-space: nowrap }
 
 /* Full-page sections (desktop only): each block fills the viewport below the nav */
 @media (min-width: 981px) and (min-height: 640px) {
@@ -286,6 +296,8 @@ section.teaser { padding: 0 }
   .example-head { grid-template-columns: 1fr; gap: 30px }
   .alts { grid-template-columns: 1fr }
   .benefits { grid-template-columns: 1fr; gap: 10px }
+  .dl-list { grid-template-columns: 1fr }
+  .dl-item { flex-direction: column; align-items: flex-start }
   .teaser-card { flex-direction: column; align-items: flex-start }
   .split { grid-template-columns: 1fr }
   .navlinks { display: none }
