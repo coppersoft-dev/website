@@ -22,6 +22,9 @@
   </div>
 </nav></div>`;
 
+  // Pages can override the footer contact address via <body data-contact-email="...">
+  var EMAIL = document.body.getAttribute('data-contact-email') || 'ping@coppersoft.com';
+
   var FOOTER = `<footer>
   <div class="wrap">
     <div class="fcols">
@@ -35,7 +38,7 @@
       </div>
       <div class="muted">
         <p style="color:#cbd5dd;margin-bottom:8px;font-weight:600" data-de="Kontakt" data-en="Contact"></p>
-        <p><a href="mailto:ping@coppersoft.com">ping@coppersoft.com</a></p>
+        <p><a href="mailto:${EMAIL}">${EMAIL}</a></p>
         <p><a href="tel:+4922830406375">+49 228 3040 6375</a></p>
       </div>
       <div class="muted">
@@ -61,6 +64,9 @@
     nodes.forEach(function(el) {
       var v = el.getAttribute('data-' + lang);
       if (v !== null) el.innerHTML = v;
+    });
+    document.querySelectorAll('[data-href-de][data-href-en]').forEach(function(el) {
+      el.setAttribute('href', el.getAttribute('data-href-' + lang));
     });
     document.documentElement.lang = lang;
     document.querySelectorAll('.langswitch button').forEach(function(b) {
