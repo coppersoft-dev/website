@@ -39,7 +39,7 @@
       <div class="muted">
         <p style="color:#cbd5dd;margin-bottom:8px;font-weight:600" data-de="Kontakt" data-en="Contact"></p>
         <p><a href="mailto:${EMAIL}">${EMAIL}</a></p>
-        <p><a href="tel:+4922830406375">+49 228 3040 6375</a></p>
+        <p><a href="tel:+4940226300775">+49 40 226 300 775</a></p>
       </div>
       <div class="muted">
         <p style="color:#cbd5dd;margin-bottom:8px;font-weight:600">Coppersoft GmbH</p>
