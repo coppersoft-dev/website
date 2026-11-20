@@ -89,6 +89,8 @@
   var pointerClientY = 0;
   var pointerActive = false;
   var activePointerType = '';
+  var touchOffsetX = 0;
+  var touchOffsetY = 0;
   var sparkEnabled = true;
   var sparkCount = Math.min(4, 1 + Math.floor((adventDay - 1) / 6));
   var sparks = [];
@@ -164,7 +166,7 @@
   function getRequestedAdventDay() {
     var hostname = window.location.hostname.toLowerCase();
     var isLocal = window.location.protocol === 'file:' || hostname === 'localhost' ||
-      hostname.endsWith('.localhost') || hostname === '127.0.0.1' || hostname === '[::1]';
+      hostname.endsWith('.localhost') || hostname === '127.0.0.1' || hostname === '[::1]' || hostname === 'ollwiller';
     if (!isLocal) return null;
 
     var requestedDay = Number(new URLSearchParams(window.location.search).get('day'));
@@ -322,6 +324,18 @@
     return matrix ? clientPoint.matrixTransform(matrix.inverse()) : { x: 0, y: 0 };
   }
 
+  function pointForPointer(clientX, clientY) {
+    return pointFromClient(clientX + touchOffsetX, clientY + touchOffsetY);
+  }
+
+  function anchorTouch(event, point) {
+    var matrix = svg.getScreenCTM();
+    if (!matrix) return;
+    var screenPoint = new DOMPoint(point.x, point.y).matrixTransform(matrix);
+    touchOffsetX = screenPoint.x - event.clientX;
+    touchOffsetY = screenPoint.y - event.clientY;
+  }
+
   function nearestOnWire(point) {
     var closest = null;
     var minSquared = Infinity;
@@ -409,6 +423,8 @@
     lastProgress = 0;
     lastRunWasBest = false;
     lastFailureWasSpark = false;
+    touchOffsetX = 0;
+    touchOffsetY = 0;
     fogUntil = 0;
     scheduleFog(0);
     currentElapsed = 0;
@@ -423,7 +439,7 @@
     placeWand(samples[0]);
     if (sparkEnabled) placeSpark(0);
     setText(stateLabel, 'Find the start', 'Zum Startpunkt');
-    setText(hint, sparkEnabled ? 'Click START, follow the wire, and dodge the glowing spark.' : 'Click or tap the ring at START, then trace the wire.', sparkEnabled ? 'Klicke auf START, folge der Leitung und weiche dem leuchtenden Funken aus.' : 'Klicke oder tippe auf den Ring bei START und folge der Kupferleitung.');
+    setText(hint, 'Click START, or touch just below it to keep the wire visible.', 'Klicke auf START oder berühre den Bereich knapp darunter, damit die Leitung sichtbar bleibt.');
   }
 
   function begin(event, nearest) {
@@ -528,7 +544,7 @@
       renderPrelaunch();
     } else if (state === 'armed') {
       setText(stateLabel, 'Find the start', 'Zum Startpunkt');
-      setText(hint, sparkEnabled ? 'Click START, follow the wire, and dodge the glowing spark.' : 'Click or tap the ring at START, then trace the wire.', sparkEnabled ? 'Klicke auf START, folge der Leitung und weiche dem leuchtenden Funken aus.' : 'Klicke oder tippe auf den Ring bei START und folge der Kupferleitung.');
+      setText(hint, 'Click START, or touch just below it to keep the wire visible.', 'Klicke auf START oder berühre den Bereich knapp darunter, damit die Leitung sichtbar bleibt.');
     } else if (state === 'running') {
       setText(stateLabel, 'Line active', 'Spiel läuft');
       setText(hint, fogCount ? 'Stay on the wire, dodge the sparks, and watch for fog.' : 'Stay on the wire and dodge the sparks.', fogCount ? 'Bleib auf der Leitung, weiche den Funken aus und achte auf Nebel.' : 'Bleib auf der Leitung und weiche den Funken aus.');
@@ -548,7 +564,7 @@
 
   function move(event) {
     if (state !== 'armed' && state !== 'running') return;
-    var rawPoint = pointFromClient(event.clientX, event.clientY);
+    var rawPoint = state === 'running' && activePointerType === 'touch' ? pointForPointer(event.clientX, event.clientY) : pointFromClient(event.clientX, event.clientY);
     var nearest = nearestOnWire(rawPoint);
 
     if (state === 'armed') {
@@ -573,7 +589,7 @@
       showResult(false, true);
       return;
     }
-    if (nearest.distance > tolerance || movedBackTooFar) {
+    if (nearest.distance > (activePointerType === 'touch' ? 34 : tolerance) || movedBackTooFar) {
       showResult(false);
       return;
     }
@@ -590,17 +606,17 @@
       if (activePointerType !== 'mouse' && !pointerActive) return;
 
       var rect = stage.getBoundingClientRect();
-      var edgeWidth = Math.min(72, rect.width * .22);
+      var edgeWidth = activePointerType === 'touch' ? rect.width * .55 : Math.min(72, rect.width * .22);
       var edgeStart = rect.right - edgeWidth;
       var available = stage.scrollWidth - stage.clientWidth - stage.scrollLeft;
 
       if (pointerClientX > edgeStart && available > 0) {
         var intensity = Math.min(1, (pointerClientX - edgeStart) / edgeWidth);
         var previousScroll = stage.scrollLeft;
-        stage.scrollLeft += .75 + intensity * 1.5;
+        stage.scrollLeft += activePointerType === 'touch' ? 1 + intensity * 2 : .75 + intensity * 1.5;
 
         if (stage.scrollLeft !== previousScroll) {
-          var rawPoint = pointFromClient(pointerClientX, pointerClientY);
+          var rawPoint = activePointerType === 'touch' ? pointForPointer(pointerClientX, pointerClientY) : pointFromClient(pointerClientX, pointerClientY);
           evaluateRunningPoint(rawPoint, nearestOnWire(rawPoint));
         }
       }
@@ -623,11 +639,23 @@
   stage.addEventListener('pointerdown', function (event) {
     var nearest = nearestOnWire(pointFromClient(event.clientX, event.clientY));
     if (state === 'armed') {
+      if (event.pointerType === 'touch') {
+        var startScreen = new DOMPoint(samples[0].x, samples[0].y).matrixTransform(svg.getScreenCTM());
+        if (Math.abs(event.clientX - startScreen.x) > 55 || event.clientY < startScreen.y - 25 || event.clientY > startScreen.y + 85) return;
+        anchorTouch(event, samples[0]);
+        nearest = nearestOnWire(pointForPointer(event.clientX, event.clientY));
+      }
       begin(event, nearest);
       return;
     }
 
     if (state === 'running' && event.pointerType !== 'mouse') {
+      if (event.pointerType === 'touch' && currentWandPoint) {
+        var wandScreen = new DOMPoint(currentWandPoint.x, currentWandPoint.y).matrixTransform(svg.getScreenCTM());
+        if (Math.abs(event.clientX - wandScreen.x) > 55 || event.clientY < wandScreen.y - 25 || event.clientY > wandScreen.y + 85) return;
+        anchorTouch(event, currentWandPoint);
+        nearest = nearestOnWire(pointForPointer(event.clientX, event.clientY));
+      }
       var progress = nearest.point.distance / pathLength;
       if (nearest.distance <= tolerance && Math.abs(progress - lastProgress) <= .055) {
         pointerId = event.pointerId;
