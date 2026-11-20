@@ -6,6 +6,7 @@ COPY images/ /usr/share/nginx/html/images/
 COPY downloads/ /usr/share/nginx/html/downloads/
 COPY migration/ /usr/share/nginx/html/migration/
 COPY *.html *.css main.js /usr/share/nginx/html/
+COPY xmas-2026/ /usr/share/nginx/html/xmas-2026/
 
 # Expose the built revision so deployments can be verified (see PR preview workflow).
 COPY <<EOF /usr/share/nginx/html/version.txt

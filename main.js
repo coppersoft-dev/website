@@ -48,7 +48,7 @@
     </div>
     <div class="copy">
       <span>© 2026 Coppersoft GmbH</span>
-      <span><a href="https://www.linkedin.com/company/coppersoft-dev" style="color:inherit">LinkedIn</a> · <a href="https://github.com/coppersoft-dev/" style="color:inherit">GitHub</a> · <a href="legalnotice.html" style="color:inherit" data-de="Impressum" data-en="Legal Notice"></a> · <a href="privacy.html" style="color:inherit" data-de="Datenschutz" data-en="Privacy"></a></span>
+      <span><a href="https://www.linkedin.com/company/coppersoft-dev" style="color:inherit">LinkedIn</a> · <a href="https://github.com/coppersoft-dev/" style="color:inherit">GitHub</a> · <a href="/legalnotice.html" style="color:inherit" data-de="Impressum" data-en="Legal Notice"></a> · <a href="/privacy.html" style="color:inherit" data-de="Datenschutz" data-en="Privacy"></a></span>
     </div>
   </div>
 </footer>`;
