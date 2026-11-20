@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
         - name: website
-          image: ghcr.io/coppersoft-dev/website:pr-19-62cf3d2e5be7d51b9c9562ae2313a32db007004a
+          image: ghcr.io/coppersoft-dev/website:pr-19-2ee6ae652013c93ddb8d7b7bd52316c640fe093f
           imagePullPolicy: IfNotPresent
           ports:
             - name: http
