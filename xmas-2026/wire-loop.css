@@ -302,6 +302,7 @@
   cursor: crosshair;
 }
 
+.track-canvas { width: 100%; min-width: 0; }
 .track { display: block; width: 100%; height: auto; overflow: visible; }
 .wire-shadow { fill: none; stroke: rgba(0,0,0,.8); stroke-width: 10; stroke-linecap: round; stroke-linejoin: round; filter: blur(4px); }
 .wire { fill: none; stroke: url(#copper-gradient); stroke-width: 4.5; stroke-linecap: round; stroke-linejoin: round; filter: url(#wire-glow); }
@@ -309,6 +310,7 @@
 .game-panel.is-armed .wire-active-glow, .game-panel.is-running .wire-active-glow { opacity: .85; }
 .fog-cloud { opacity: 0; transition: opacity .8s ease-in-out; pointer-events: none; }
 .game-panel.has-fog .fog-cloud { opacity: 1; }
+.fog-mobile { display: none; }
 .fog-haze { fill: #a9bac2; opacity: .48; filter: blur(17px); }
 .fog-body { fill: #bdcdd4; opacity: .97; filter: blur(10px); }
 .fog-wisp { fill: #e0e8eb; opacity: .52; filter: blur(11px); }
@@ -327,9 +329,6 @@
 .wand { opacity: 0; pointer-events: none; transition: opacity .2s; }
 .game-panel.is-armed .wand, .game-panel.is-running .wand { opacity: 1; }
 .wand-outer { fill: rgba(8,12,15,.08); stroke: #f0ad78; stroke-width: 5; filter: url(#wire-glow); }
-.wand-inner { fill: transparent; stroke: rgba(239,181,135,.55); stroke-width: 1; }
-.wand-handle { stroke: url(#copper-gradient); stroke-width: 5; stroke-linecap: round; }
-.wand-grip { fill: #d89456; stroke: #f0ad78; stroke-width: 1.5; }
 .game-panel.is-failed .wand-outer { stroke: #df674f; }
 .game-panel.is-won .wand-outer { stroke: var(--green); }
 
@@ -434,4 +433,55 @@
   .christmas-crown { animation: christmas-star 700ms ease-out forwards; }
   .game-panel.is-won .finish-node,
   .game-panel.is-won .overlay-card { animation-duration: 350ms; animation-iteration-count: 1; }
+}
+
+
+/* On phones the route runs upward, leaving the thumb below the play area. */
+.game-touchpad { display: none; }
+@media (max-width: 560px) {
+  .track-stage { display: block; height: min(58vh, 480px); min-height: 300px; padding: 0; overflow: hidden; }
+  .track-canvas { position: relative; width: 100%; height: var(--mobile-track-length); }
+  .fog-mobile { display: block; }
+  .fog-haze, .fog-body, .fog-wisp { display: none; }
+  .spark-particle:nth-child(-n+8) { display: none; }
+  .spark-particle, .spark-rays, .spark-glow, .spark-core { filter: none; }
+  .game-panel.has-fog .fog-cloud { opacity: 1; }
+  .track-label { transform-box: fill-box; transform-origin: center; transform: rotate(90deg); }
+  .track-canvas .track { position: absolute; left: 0; top: var(--mobile-track-length); width: var(--mobile-track-length); min-width: 0; transform: rotate(-90deg); transform-origin: top left; }
+  .game-touchpad { display: flex; position: relative; min-height: 115px; align-items: center; justify-content: center; flex-direction: column; gap: 8px; border-top: 1px solid rgba(216,148,86,.35); background: radial-gradient(ellipse at center, rgba(184,115,51,.15), transparent 75%), #151d22; color: #c8a383; font: 12px/1.4 var(--mono); text-align: center; touch-action: none; user-select: none; -webkit-user-select: none; }
+  .game-panel:not(.is-armed):not(.is-running) .game-touchpad { opacity: .45; }
+  .game-panel.is-running .game-touchpad { background-color: #1b252b; }
+}
+
+@media (max-width: 560px) {
+  .game-touchpad { flex-direction: row; justify-content: space-between; gap: 12px; padding: 12px 16px; }
+  .steer-button { flex: 1 1 0; min-width: 0; align-self: stretch; min-height: 88px; border: 1px solid rgba(239,177,124,.55); border-radius: 14px; background: #263139; color: #efb17c; font-size: 27px; touch-action: none; user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; -webkit-appearance: none; appearance: none; -webkit-tap-highlight-color: transparent; }
+  .steer-button, .steer-button * { user-select: none; -webkit-user-select: none; -webkit-touch-callout: none; }
+  .steer-button > span { pointer-events: none; }
+  .steer-button:hover, .steer-button:active, .steer-button:focus { transform: none; box-shadow: none; }
+  .steer-button.is-pressed { background: #704325; color: #fff; }
+  .accelerate-button { font: 600 14px/1.2 var(--mono); }
+}
+
+/* Keep the complete mobile game inside the visible viewport. */
+@media (max-width: 560px) {
+  .game-page { height: 100vh; height: 100dvh; min-height: 0; display: flex; flex-direction: column; overflow: hidden; }
+  .game-page .nav-outer { flex: none; }
+  .game-page nav { padding: 8px 16px; }
+  .game-page .game-main { flex: 1 1 auto; min-height: 0; display: flex; flex-direction: column; }
+  .game-page .game-hero { flex: 1 1 auto; min-height: 0; padding: 0; display: flex; }
+  .game-page .game-wrap { flex: 1 1 auto; min-width: 0; min-height: 0; max-width: none; padding: 0; display: flex; }
+  .game-intro, .game-values, .game-page > footer { display: none; }
+  .game-panel { flex: 1 1 auto; min-width: 0; min-height: 0; display: flex; flex-direction: column; border-radius: 0; }
+  .game-toolbar { flex: none; padding: 8px 12px; }
+  .game-viewport, .game-panel.is-day-picker-open .game-viewport { flex: 1 1 auto; min-height: 0; }
+  .track-stage { height: 100%; min-height: 0; }
+  .game-touchpad { flex: none; min-height: 0; padding: 8px 12px; padding-bottom: max(8px, env(safe-area-inset-bottom)); }
+  .steer-button { min-height: clamp(58px, 10vh, 88px); }
+  .game-hint { flex: none; min-height: 0; padding: 6px 12px; font-size: 11px; line-height: 1.35; }
+  .game-overlay { padding: 12px 18px; }
+  .overlay-icon { margin-bottom: 10px; }
+  .overlay-card h2 { margin-bottom: 8px; }
+  .overlay-card p { font-size: 14px; line-height: 1.45; }
+  .game-button { margin-top: 14px; }
 }

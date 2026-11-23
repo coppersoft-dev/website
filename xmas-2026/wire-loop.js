@@ -6,6 +6,22 @@
   var fog = document.getElementById('fog-cloud');
   var stage = document.getElementById('track-stage');
   var panel = document.getElementById('game-panel');
+  var touchpad = document.getElementById('game-touchpad');
+  var mobileLayout = window.matchMedia('(max-width: 560px)');
+  var steerDirection = 0;
+  var steerPointers = {};
+  var forwardPaused = false;
+  var forwardSpeed = 12;
+  var acceleratedSpeed = 36;
+  var accelerating = false;
+  var currentForwardSpeed = forwardSpeed;
+  var steeringSpeed = 78;
+  var steeringVelocity = 0;
+  var joystickFrame = 0;
+  var joystickLastTime = 0;
+  var joystickSpeed = 60;
+  var mobileCameraOffset = 0;
+  var trackCanvas = stage.querySelector('.track-canvas');
   var wand = document.getElementById('wand');
   var spark = document.getElementById('spark');
   var overlay = document.getElementById('game-overlay');
@@ -79,7 +95,8 @@
   var timer = 0;
   var pointerId = null;
   var lastProgress = 0;
-  var tolerance = 25;
+  // Inner edge of the loop minus half the visible wire width.
+  var contactDistance = 20 - 5 / 2 - 4.5 / 2;
   var storageKey = 'coppersoft-wire-loop-best-day-' + adventDay;
   var bestTime = loadBestTime();
   var lastRunWasBest = false;
@@ -96,6 +113,7 @@
   var sparks = [];
   var sparkFrame = 0;
   var sparkStarted = 0;
+  var lastSparkDecoration = -Infinity;
   var currentWandPoint = null;
   var lastFailureWasSpark = false;
   var nextFogAt = 0;
@@ -339,13 +357,21 @@
   function nearestOnWire(point) {
     var closest = null;
     var minSquared = Infinity;
-    for (var i = 0; i < samples.length; i += 1) {
-      var dx = point.x - samples[i].x;
-      var dy = point.y - samples[i].y;
+    for (var i = 1; i < samples.length; i += 1) {
+      var start = samples[i - 1];
+      var end = samples[i];
+      var segmentX = end.x - start.x;
+      var segmentY = end.y - start.y;
+      var lengthSquared = segmentX * segmentX + segmentY * segmentY;
+      var fraction = lengthSquared ? Math.max(0, Math.min(1, ((point.x - start.x) * segmentX + (point.y - start.y) * segmentY) / lengthSquared)) : 0;
+      var x = start.x + segmentX * fraction;
+      var y = start.y + segmentY * fraction;
+      var dx = point.x - x;
+      var dy = point.y - y;
       var squared = dx * dx + dy * dy;
       if (squared < minSquared) {
         minSquared = squared;
-        closest = samples[i];
+        closest = { x: x, y: y, distance: start.distance + (end.distance - start.distance) * fraction };
       }
     }
     return { point: closest, distance: Math.sqrt(minSquared) };
@@ -358,6 +384,12 @@
 
   function placeSpark(elapsed) {
     var speed = 0.00035 + (adventDay - 1) * 0.000025;
+    if (mobileLayout.matches) {
+      // Keep the fastest spark slower than the loop in screen pixels.
+      var matrix = svg.getScreenCTM();
+      var scale = matrix ? Math.hypot(matrix.a, matrix.b) : 1;
+      speed = Math.min(speed * joystickSpeed / 240, joystickSpeed * .5 / (55 * 2 * Math.PI * (scale || 1)));
+    }
     sparks.forEach(function (item, index) {
       var crossing = pathLength * item.progress;
       var center = path.getPointAtLength(crossing);
@@ -370,8 +402,9 @@
       var offset = 55 * Math.cos(elapsed * speed * 2 * Math.PI + phase);
       item.point = { x: center.x - dy / length * offset, y: center.y + dx / length * offset };
       item.element.setAttribute('transform', 'translate(' + item.point.x.toFixed(1) + ' ' + item.point.y.toFixed(1) + ')');
-      animateSparkAppearance(item, elapsed, index);
+      if (!mobileLayout.matches || elapsed - lastSparkDecoration >= 100) animateSparkAppearance(item, elapsed, index);
     });
+    if (mobileLayout.matches && elapsed - lastSparkDecoration >= 100) lastSparkDecoration = elapsed;
   }
 
   function animateSparkAppearance(item, elapsed, index) {
@@ -380,6 +413,7 @@
       item.raysA.setAttribute('opacity', (.4 + .6 * Math.abs(Math.sin(elapsed * .018 + phase))).toFixed(2));
       item.raysB.setAttribute('opacity', (.3 + .7 * Math.abs(Math.sin(elapsed * .026 + phase + 1))).toFixed(2));
       item.particles.forEach(function (particle, particleIndex) {
+        if (mobileLayout.matches && particleIndex >= 4) return;
         var life = ((elapsed / 650 + particleIndex * .31 + index * .17) % 1);
         var angle = particleIndex * 2.39996 + index * .7;
         var distance = 4 + life * (22 + (particleIndex % 4) * 4);
@@ -421,6 +455,7 @@
   function armGame() {
     state = 'armed';
     lastProgress = 0;
+    currentForwardSpeed = forwardSpeed;
     lastRunWasBest = false;
     lastFailureWasSpark = false;
     touchOffsetX = 0;
@@ -434,33 +469,48 @@
     celebration.replaceChildren();
     panel.classList.remove('is-celebrating');
     stage.scrollLeft = 0;
+    stage.scrollTop = 0;
+    mobileCameraOffset = 0;
+    trackCanvas.style.transform = '';
+    if (mobileLayout.matches) sizeMobileTrack();
     panel.className = 'game-panel is-armed';
     overlay.classList.add('is-hidden');
     placeWand(samples[0]);
+    if (mobileLayout.matches) followMobileWand();
     if (sparkEnabled) placeSpark(0);
     setText(stateLabel, 'Find the start', 'Zum Startpunkt');
-    setText(hint, 'Click START, or touch just below it to keep the wire visible.', 'Klicke auf START oder berühre den Bereich knapp darunter, damit die Leitung sichtbar bleibt.');
+    if (mobileLayout.matches) {
+      begin(null, nearestOnWire(samples[0]), touchpad);
+      joystickLastTime = performance.now();
+      joystickFrame = requestAnimationFrame(moveMobile);
+    } else setText(hint, 'Click the loop to begin.', 'Klicke auf den Ring, um zu beginnen.');
   }
 
-  function begin(event, nearest) {
+  function begin(event, nearest, captureTarget) {
     if (state !== 'armed' || nearest.point.distance > 45 || nearest.distance > 32) return;
     state = 'running';
-    pointerId = event.pointerId;
-    pointerActive = true;
-    activePointerType = event.pointerType;
-    stage.setPointerCapture(pointerId);
+    pointerId = event ? event.pointerId : null;
+    pointerActive = !!event;
+    activePointerType = captureTarget ? 'touch' : event.pointerType;
+    if (event) (captureTarget || stage).setPointerCapture(pointerId);
     startTime = performance.now();
     sparkStarted = startTime;
-    pointerClientX = event.clientX;
-    pointerClientY = event.clientY;
+    lastSparkDecoration = -Infinity;
+    pointerClientX = event ? event.clientX : 0;
+    pointerClientY = event ? event.clientY : 0;
     panel.classList.remove('is-armed');
     panel.classList.add('is-running');
     setText(stateLabel, 'Line active', 'Spiel läuft');
-    setText(hint, fogCount ? 'Stay on the wire, dodge the sparks, and watch for fog.' : 'Stay on the wire and dodge the sparks.', fogCount ? 'Bleib auf der Leitung, weiche den Funken aus und achte auf Nebel.' : 'Bleib auf der Leitung und weiche den Funken aus.');
+    if (captureTarget) setText(hint, 'Hold left or right to steer, Boost to accelerate, or both arrows to wait.', 'Halte links oder rechts zum Lenken, Boost zum Beschleunigen, beide Pfeile zum Warten.');
+    else setText(hint, fogCount ? 'Stay on the wire, dodge the sparks, and watch for fog.' : 'Stay on the wire and dodge the sparks.', fogCount ? 'Bleib auf der Leitung, weiche den Funken aus und achte auf Nebel.' : 'Bleib auf der Leitung und weiche den Funken aus.');
     cancelAnimationFrame(timer);
     updateTimer();
     if (sparkEnabled) sparkFrame = requestAnimationFrame(animateSpark);
-    startAutoScroll();
+    if (!captureTarget) {
+      var startPoint = pointForPointer(event.clientX, event.clientY);
+      evaluateRunningPoint(startPoint, nearestOnWire(startPoint));
+      if (state === 'running') startAutoScroll();
+    }
   }
 
   function showResult(won, hitSpark) {
@@ -468,6 +518,13 @@
     cancelAnimationFrame(timer);
     cancelAnimationFrame(scrollFrame);
     cancelAnimationFrame(sparkFrame);
+    cancelAnimationFrame(joystickFrame);
+    steerDirection = 0;
+    steeringVelocity = 0;
+    steerPointers = {};
+    forwardPaused = false;
+    accelerating = false;
+    touchpad.querySelectorAll('.steer-button').forEach(function (control) { control.classList.remove('is-pressed'); });
     pointerId = null;
     pointerActive = false;
     activePointerType = '';
@@ -537,17 +594,27 @@
     }, 4100);
   }
 
+  function renderMobileIntro() {
+    setText(copy,
+      'The loop moves on its own. Hold left or right to steer, Boost to accelerate, and both arrows to wait.',
+      'Der Ring bewegt sich von selbst. Halte links oder rechts zum Lenken, Boost zum Beschleunigen und beide Pfeile zum Warten.');
+  }
+
   function refreshDynamicLanguage() {
     renderCurrentTime();
     renderBestTime();
     if (state === 'prelaunch') {
       renderPrelaunch();
+    } else if (state === 'intro' && mobileLayout.matches) {
+      renderMobileIntro();
     } else if (state === 'armed') {
       setText(stateLabel, 'Find the start', 'Zum Startpunkt');
-      setText(hint, 'Click START, or touch just below it to keep the wire visible.', 'Klicke auf START oder berühre den Bereich knapp darunter, damit die Leitung sichtbar bleibt.');
+      if (mobileLayout.matches) setText(hint, 'Hold left or right to steer, Boost to accelerate, or both arrows to wait.', 'Halte links oder rechts zum Lenken, Boost zum Beschleunigen, beide Pfeile zum Warten.');
+      else setText(hint, 'Click the loop to begin.', 'Klicke auf den Ring, um zu beginnen.');
     } else if (state === 'running') {
       setText(stateLabel, 'Line active', 'Spiel läuft');
-      setText(hint, fogCount ? 'Stay on the wire, dodge the sparks, and watch for fog.' : 'Stay on the wire and dodge the sparks.', fogCount ? 'Bleib auf der Leitung, weiche den Funken aus und achte auf Nebel.' : 'Bleib auf der Leitung und weiche den Funken aus.');
+      if (mobileLayout.matches) setText(hint, 'Hold left or right to steer, Boost to accelerate, or both arrows to wait.', 'Halte links oder rechts zum Lenken, Boost zum Beschleunigen, beide Pfeile zum Warten.');
+      else setText(hint, fogCount ? 'Stay on the wire, dodge the sparks, and watch for fog.' : 'Stay on the wire and dodge the sparks.', fogCount ? 'Bleib auf der Leitung, weiche den Funken aus und achte auf Nebel.' : 'Bleib auf der Leitung und weiche den Funken aus.');
     } else if (state === 'won' || state === 'failed') {
       var won = state === 'won';
       setText(
@@ -563,14 +630,9 @@
   }
 
   function move(event) {
-    if (state !== 'armed' && state !== 'running') return;
-    var rawPoint = state === 'running' && activePointerType === 'touch' ? pointForPointer(event.clientX, event.clientY) : pointFromClient(event.clientX, event.clientY);
+    if (state !== 'running') return;
+    var rawPoint = pointForPointer(event.clientX, event.clientY);
     var nearest = nearestOnWire(rawPoint);
-
-    if (state === 'armed') {
-      if (nearest.point.distance < 45) placeWand(nearest.point);
-      return;
-    }
 
     if (event.pointerId !== pointerId) return;
     event.preventDefault();
@@ -589,7 +651,7 @@
       showResult(false, true);
       return;
     }
-    if (nearest.distance > (activePointerType === 'touch' ? 34 : tolerance) || movedBackTooFar) {
+    if (nearest.distance >= contactDistance || movedBackTooFar) {
       showResult(false);
       return;
     }
@@ -616,7 +678,7 @@
         stage.scrollLeft += activePointerType === 'touch' ? 1 + intensity * 2 : .75 + intensity * 1.5;
 
         if (stage.scrollLeft !== previousScroll) {
-          var rawPoint = activePointerType === 'touch' ? pointForPointer(pointerClientX, pointerClientY) : pointFromClient(pointerClientX, pointerClientY);
+          var rawPoint = pointForPointer(pointerClientX, pointerClientY);
           evaluateRunningPoint(rawPoint, nearestOnWire(rawPoint));
         }
       }
@@ -635,13 +697,104 @@
     }
   }
 
+  function sizeMobileTrack() {
+    if (!mobileLayout.matches) return;
+    stage.style.setProperty('--mobile-track-length', (stage.clientWidth * 1000 / 350) + 'px');
+  }
+
+  function followMobileWand() {
+    if (!mobileLayout.matches || !currentWandPoint) return;
+    var screenPoint = new DOMPoint(currentWandPoint.x, currentWandPoint.y).matrixTransform(svg.getScreenCTM());
+    var rect = stage.getBoundingClientRect();
+    var desiredOffset = mobileCameraOffset + (rect.top + rect.height * .68) - screenPoint.y;
+    var minimumOffset = Math.min(0, stage.clientHeight - trackCanvas.offsetHeight);
+    mobileCameraOffset = Math.max(minimumOffset, Math.min(0, desiredOffset));
+    trackCanvas.style.transform = 'translateY(' + mobileCameraOffset + 'px)';
+  }
+
+  touchpad.addEventListener('touchstart', function (event) {
+    if (event.target.closest('.steer-button')) event.preventDefault();
+  }, { passive: false });
+
+  touchpad.addEventListener('contextmenu', function (event) {
+    if (event.target.closest('.steer-button')) event.preventDefault();
+  });
+
+  function updateSteering() {
+    var left = false;
+    var right = false;
+    var faster = false;
+    Object.keys(steerPointers).forEach(function (id) {
+      if (steerPointers[id] < 0) left = true;
+      else if (steerPointers[id] > 0) right = true;
+      else faster = true;
+    });
+    accelerating = faster;
+    forwardPaused = left && right;
+    steerDirection = Number(right) - Number(left);
+    if (!steerDirection) steeringVelocity = 0;
+    touchpad.querySelector('.steer-left').classList.toggle('is-pressed', left);
+    touchpad.querySelector('.steer-right').classList.toggle('is-pressed', right);
+    touchpad.querySelector('.accelerate-button').classList.toggle('is-pressed', faster);
+  }
+
+  touchpad.addEventListener('pointerdown', function (event) {
+    var control = event.target.closest('.steer-button');
+    if (!control || !mobileLayout.matches || state !== 'running') return;
+    event.preventDefault();
+    steerPointers[event.pointerId] = Number(control.dataset.steer);
+    updateSteering();
+    control.setPointerCapture(event.pointerId);
+  });
+
+  function releaseSteering(event) {
+    if (!(event.pointerId in steerPointers)) return;
+    delete steerPointers[event.pointerId];
+    steeringVelocity = 0;
+    updateSteering();
+  }
+  touchpad.addEventListener('pointerup', releaseSteering);
+  touchpad.addEventListener('pointercancel', releaseSteering);
+  touchpad.addEventListener('lostpointercapture', releaseSteering);
+
+  function moveMobile(now) {
+    if (state !== 'running' || !mobileLayout.matches) return;
+    var elapsed = Math.min(50, now - joystickLastTime) / 1000;
+    joystickLastTime = now;
+    currentForwardSpeed += ((accelerating ? acceleratedSpeed : forwardSpeed) - currentForwardSpeed) * (1 - Math.exp(-elapsed / .2));
+    var targetVelocity = steerDirection * steeringSpeed;
+    steeringVelocity += (targetVelocity - steeringVelocity) * (1 - Math.exp(-elapsed / .08));
+    if (!steerDirection && Math.abs(steeringVelocity) < .1) steeringVelocity = 0;
+    var matrix = svg.getScreenCTM();
+    if (matrix) {
+      var inverse = matrix.inverse();
+      var origin = new DOMPoint(0, 0).matrixTransform(inverse);
+      var delta = new DOMPoint(steeringVelocity * elapsed, (forwardPaused ? 0 : -currentForwardSpeed * elapsed)).matrixTransform(inverse);
+      var point = { x: currentWandPoint.x + delta.x - origin.x, y: currentWandPoint.y + delta.y - origin.y };
+      evaluateRunningPoint(point, nearestOnWire(point));
+      if (state === 'running') followMobileWand();
+    }
+    if (state === 'running') joystickFrame = requestAnimationFrame(moveMobile);
+  }
+
+  window.addEventListener('resize', function () {
+    if (mobileLayout.matches) { sizeMobileTrack(); followMobileWand(); }
+    else { mobileCameraOffset = 0; trackCanvas.style.transform = ''; }
+  });
+
   button.addEventListener('click', armGame);
   stage.addEventListener('pointerdown', function (event) {
+    if (mobileLayout.matches) return;
     var nearest = nearestOnWire(pointFromClient(event.clientX, event.clientY));
     if (state === 'armed') {
       if (event.pointerType === 'touch') {
         var startScreen = new DOMPoint(samples[0].x, samples[0].y).matrixTransform(svg.getScreenCTM());
         if (Math.abs(event.clientX - startScreen.x) > 55 || event.clientY < startScreen.y - 25 || event.clientY > startScreen.y + 85) return;
+        anchorTouch(event, samples[0]);
+        nearest = nearestOnWire(pointForPointer(event.clientX, event.clientY));
+      } else {
+        var clickPoint = pointFromClient(event.clientX, event.clientY);
+        if (Math.hypot(clickPoint.x - samples[0].x, clickPoint.y - samples[0].y) > 22.5) return;
         anchorTouch(event, samples[0]);
         nearest = nearestOnWire(pointForPointer(event.clientX, event.clientY));
       }
@@ -657,7 +810,7 @@
         nearest = nearestOnWire(pointForPointer(event.clientX, event.clientY));
       }
       var progress = nearest.point.distance / pathLength;
-      if (nearest.distance <= tolerance && Math.abs(progress - lastProgress) <= .055) {
+      if (nearest.distance < contactDistance && Math.abs(progress - lastProgress) <= .055) {
         pointerId = event.pointerId;
         pointerActive = true;
         activePointerType = event.pointerType;
@@ -735,6 +888,13 @@
     dayTrigger.setAttribute('aria-expanded', 'false');
     dayTrigger.focus();
   });
+  if (mobileLayout.matches) {
+    if (state === 'intro') renderMobileIntro();
+    sizeMobileTrack();
+    mobileCameraOffset = Math.min(0, stage.clientHeight - trackCanvas.offsetHeight);
+    trackCanvas.style.transform = 'translateY(' + mobileCameraOffset + 'px)';
+  }
+
   document.querySelectorAll('.langswitch button').forEach(function (languageButton) {
     languageButton.addEventListener('click', function () {
       document.querySelectorAll('[data-svg-en][data-svg-de]').forEach(function (element) {

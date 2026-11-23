@@ -55,7 +55,7 @@
               <div class="door-tooltip" id="door-tooltip" role="status" hidden></div>
             </div>
             <div class="track-stage" id="track-stage" aria-describedby="game-hint">
-              <svg class="track" id="wire-game" viewBox="0 0 1000 350" role="img" aria-label="Copper wire loop game" aria-describedby="track-desc">
+              <div class="track-canvas"><svg class="track" id="wire-game" viewBox="0 0 1000 350" role="img" aria-label="Copper wire loop game" aria-describedby="track-desc">
               <desc id="track-desc">Move from the start node on the left along the copper wire to the finish node on the right without leaving the line.</desc>
               <defs>
                 <linearGradient id="copper-gradient" x1="0" y1="0" x2="1" y2="1">
@@ -64,6 +64,12 @@
                   <stop offset=".6" stop-color="#b87333"/>
                   <stop offset="1" stop-color="#e49a5e"/>
                 </linearGradient>
+                <radialGradient id="fog-mobile-gradient">
+                  <stop offset="0" stop-color="#bdcdd4" stop-opacity=".98"/>
+                  <stop offset=".48" stop-color="#bdcdd4" stop-opacity=".94"/>
+                  <stop offset=".75" stop-color="#bdcdd4" stop-opacity=".62"/>
+                  <stop offset="1" stop-color="#bdcdd4" stop-opacity="0"/>
+                </radialGradient>
                 <filter id="wire-glow" x="-20%" y="-40%" width="140%" height="180%">
                   <feGaussianBlur stdDeviation="5" result="blur"/>
                   <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
@@ -74,6 +80,11 @@
               <path class="wire-active-glow" id="wire-active-glow" aria-hidden="true"/>
               <path class="wire" id="wire-path" d="M74 190 H174 C205 190 219 207 219 234 V263 C219 291 235 305 262 305 H303 C332 305 346 289 346 261 V170 C346 131 369 111 407 111 H439 C474 111 490 130 490 163 V278 C490 311 508 329 534 329 C559 329 575 311 575 280 V241 C575 213 592 196 616 196 C638 196 648 210 660 232 C671 251 683 260 708 260 H733 C758 260 770 245 770 219 V100 C770 63 793 43 830 43 H858 C897 43 915 65 915 102 V202 C915 231 931 247 959 247 H984"/>
               <g class="fog-cloud" id="fog-cloud" aria-hidden="true">
+                <g class="fog-mobile" fill="url(#fog-mobile-gradient)">
+                  <ellipse rx="140" ry="65"/>
+                  <ellipse cx="-45" cy="-12" rx="85" ry="48"/>
+                  <ellipse cx="42" cy="-8" rx="85" ry="48"/>
+                </g>
                 <ellipse class="fog-haze" rx="126" ry="61"/>
                 <path class="fog-body" d="M-100 9 C-113 -5 -97 -26 -78 -26 C-67 -47 -38 -49 -20 -38 C-4 -58 27 -53 40 -35 C63 -42 88 -29 90 -12 C113 -9 112 17 96 25 C80 38 58 35 43 31 C24 43 -2 40 -18 33 C-38 42 -63 36 -73 27 C-91 30 -103 23 -100 9 Z"/>
                 <ellipse class="fog-wisp" cx="-60" cy="-17" rx="38" ry="15"/>
@@ -106,11 +117,8 @@
               </g>
               <g class="wand" id="wand" transform="translate(74 190)" aria-hidden="true">
                 <circle class="wand-outer" r="20"/>
-                <circle class="wand-inner" r="10"/>
-                <path class="wand-handle" d="M14 14 L30 30"/>
-                <circle class="wand-grip" cx="32.5" cy="32.5" r="4.5"/>
               </g>
-              </svg>
+              </svg></div>
             </div>
 
             <div class="game-overlay" id="game-overlay">
@@ -125,6 +133,7 @@
             </div>
           </div>
 
+          <div class="game-touchpad" id="game-touchpad" aria-describedby="game-hint"><button type="button" class="steer-button steer-left" aria-label="Steer left" data-steer="-1"><span aria-hidden="true">◀</span></button><button type="button" class="steer-button accelerate-button" data-steer="0"><span data-en="Boost" data-de="Boost"></span></button><button type="button" class="steer-button steer-right" aria-label="Steer right" data-steer="1"><span aria-hidden="true">▶</span></button></div>
           <p class="game-hint" id="game-hint" data-de="Klicke oder tippe auf den linken Startpunkt und folge der Kupferleitung." data-en="Click or tap the left contact point, then follow the wire."></p>
         </div>
       </div>
